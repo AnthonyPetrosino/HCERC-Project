@@ -1,4 +1,5 @@
 Flask==3.0.0
+pytest
 
-Flask-SQLAlchemy==3.0.5
-yfinance==0.2.30
+# Flask-SQLAlchemy==3.0.5
+# yfinance==0.2.30

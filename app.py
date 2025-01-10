@@ -9,5 +9,5 @@ def index():
 
 # Dockerize app
 if __name__ == "__main__":
-    # Make sure the app is running on port 5000 outside the container
+    # Run app on port 5000 outside of the container
     app.run(host='0.0.0.0', port=5000, debug=True)

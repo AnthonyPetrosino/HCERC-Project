@@ -17,4 +17,4 @@ ENV FLASK_APP=app.py
 EXPOSE 5000
 
 # Run the command to start the Flask application
-CMD python ./app.py
+CMD ["python", "app.py"]
