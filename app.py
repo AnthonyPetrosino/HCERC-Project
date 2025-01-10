@@ -5,8 +5,7 @@ app = Flask(__name__)
 # Homepage route
 @app.route("/")
 def index():
-    return "Hello world"
-    # return render_template("index.html")
+    return render_template("index.html")
 
 # Dockerize app
 if __name__ == "__main__":
