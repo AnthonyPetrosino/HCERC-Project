@@ -36,5 +36,3 @@ jobs:
       run: |
         pytest
 
-    - name: Build and Push Docker Image
-      run: 
