@@ -2,10 +2,10 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# Homepage 
+# Homepage route
 @app.route("/")
 def index():
-    return("Hello World")
+    return render_template("index.html")
 
 # Dockerize app
 if __name__ == "__main__":
