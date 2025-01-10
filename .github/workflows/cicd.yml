@@ -58,8 +58,9 @@ jobs:
         id: build_and_push 
         with:
           context: .
+          file: ./dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/flasktest-app:latest
 
-      - name: Output image digest
-        run: echo "Image Digest: ${{ steps.build_and_push.outputs.digest }}"
+      # - name: Output image digest
+      #   run: echo "Image Digest: ${{ steps.build_and_push.outputs.digest }}"
