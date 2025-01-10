@@ -9,7 +9,13 @@ on:
     branches: [ main ]
 
 jobs: 
-  # Unit testing job name
+  docker-build: 
+    runs-on: ubuntu-latest
+    steps: 
+    - uses: actions/checkout@v4
+    - name: Build the docker image
+      run: docker build . --file dockerfile --tag workflow:$(date+%s)
+  # Unit testing job
   build-and-test: 
     # Container
     runs-on: ubuntu-latest
@@ -60,7 +66,7 @@ jobs:
           context: .
           file: ./dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/flasktest-app:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/hrec-project:latest
 
       # - name: Output image digest
       #   run: echo "Image Digest: ${{ steps.build_and_push.outputs.digest }}"
