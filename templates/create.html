@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{% block title %} Create a new post {% endblock %}</h1>
+
+<!-- Submits a POST request to the create view function in app.py -->
+
+<form method="post">
+    <!-- Assign post title -->
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" name="title"
+            placeholder="Post title" class="form-control"
+            value="{{ request.form['title'] }}"></input>
+    </div>
+    <!-- Assign post contents -->
+    <div class="form-group">
+        <label for="content">Content</label>
+        <textarea name="content" placeholder="Post content"
+                class="form-control">{{ request.form['content'] }}
+        </textarea>
+    </div>
+
+    <!-- Submit button -->
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>
+{% endblock %}
