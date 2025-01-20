@@ -5,4 +5,4 @@ def test_home():
 
     # Tests if it recieves a successful request containing html
     assert response.status_code==200
-    assert b"<!DOCTYPE html>" in response.data
+    assert b"<!doctype html>".lower() in response.data
