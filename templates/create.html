@@ -12,6 +12,15 @@
             placeholder="Post title" class="form-control"
             value="{{ request.form['title'] }}"></input>
     </div>
+
+    <!-- Assign ticker symbol -->
+    <div class="form-group">
+        <label for="ticker">Ticker Symbol</label>
+        <input type="text" name="ticker"
+            placeholder="Ticker Symbol" class="form-control"
+            value="{{ request.form['ticker'] }}"></input>
+    </div>
+
     <!-- Assign post contents -->
     <div class="form-group">
         <label for="content">Content</label>

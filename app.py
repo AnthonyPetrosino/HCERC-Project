@@ -1,9 +1,10 @@
 import sqlite3
-from flask import Flask, render_template, request, url_for, flash, redirect
+import yfinance as yf
+from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
 from werkzeug.exceptions import abort
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your secret key'
+app.config['SECRET_KEY'] = 'your secret key' # TODO Change
 
 # Connects to db
 def get_db_connection():
@@ -16,15 +17,10 @@ def get_post(post_id):
     post = conn.execute('SELECT * FROM posts WHERE id = ?',
                         (post_id,)).fetchone()  # Execute sql query 
     
-    conn.close()    # Close connection to db
+    conn.close()        # Close connection to db
     if post is None:    # If post doesn't exist, 404 error
         abort(404)
     return post
-
-# Homepage route
-# @app.route("/")
-# def index():
-#     return render_template("index.html")
 
 # Homepage route
 @app.route("/")
@@ -34,38 +30,67 @@ def index():
     conn.close()
     return render_template("index.html", posts=posts)
 
-# Individual post
+# Viewing an individual post
 @app.route('/<int:post_id>')    # Variable rule 
 def post(post_id):
-    post = get_post(post_id)    # Uses previous function
-    return render_template('post.html', post=post)
+    post = get_post(post_id)
 
-# Form allowing user to create a post
+    price_at_creation = post['price_at_creation']
+    ticker = post['ticker'].strip().upper()     # Retrieve ticker symbol from db
+
+    # Query current stock data
+    try:
+        stock = yf.Ticker(ticker)           # Pass it to yfinance
+        stock_data = stock.history(period="7d")     # Fetch most recent day's data
+        cur_price = stock_data['Close'].iloc[-1] if not stock_data.empty else None  # Fetch previous day's data if after hours
+        cur_price = f"{cur_price:.2f}"
+    except Exception as e:
+        cur_price = "Error fetching price"
+
+    percent_change = ((float(cur_price) - float(price_at_creation)) / float(price_at_creation)) * 100
+    percent_change = f"{percent_change:.2f}"
+
+    return render_template('post.html', post=post, cur_price=cur_price, price_at_creation=price_at_creation, percent_change=percent_change)
+
+# Handle requests allowing user to create a post
 @app.route('/create', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':    # Executes following POST request
         title = request.form['title']
         content = request.form['content']
+        ticker = request.form['ticker'].upper()
 
-        if not title:
-            flash('Title is required.')
+        # Query current stock data to store as original price
+        try:
+            stock = yf.Ticker(ticker)           # Pass it to yfinance
+            stock_data = stock.history(period="7d")     # Fetch most recent day's data
+            cur_price = stock_data['Close'].iloc[-1] if not stock_data.empty else None  # Fetch previous day's data if after hours
+            cur_price = f"{cur_price:.2f}" if cur_price else "N/A"
+        except Exception as e:
+            cur_price = "Error fetching price"
+
+        if not title or not ticker or not content:
+            flash('Please fill out all parts of the form.', 'error')
+        elif cur_price == "N/A":
+            flash('Please check that your ticker symbol.', 'error')
         else:
             conn = get_db_connection()
-            conn.execute('INSERT INTO posts (title, content) VALUES (?, ?)',
-                         (title, content))   
+            conn.execute('INSERT INTO posts (title, content, ticker, price_at_creation) VALUES (?, ?, ?, ?)',
+                         (title, content, ticker, cur_price))   
             conn.commit()
             conn.close()
-            flash('Post created')
+            flash('Post created.')
             return redirect(url_for('index'))
     return render_template('create.html')
 
+# Handle requests allowing user to edit a post
 @app.route('/<int:id>/edit', methods=('GET', 'POST'))
 def edit(id):
     post = get_post(id)
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-
+        
         if not title:
             flash('Title is required.')
         else:
@@ -76,8 +101,19 @@ def edit(id):
             conn.close()
             return redirect(url_for('index'))
     return render_template('edit.html', post=post)       
-     
-# Dockerize app
+
+# Handle requests allowing user to delete a post
+@app.route('/<int:id>/delete', methods=('POST',))
+def delete(id):
+    post = get_post(id)
+    conn = get_db_connection()
+    conn.execute('DELETE FROM posts WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    flash('"{}" was successfully deleted!'.format(post['title']))
+    return redirect(url_for('index'))
+
+# Dockerize and run app
 if __name__ == "__main__":
     # Run app on port 5000 outside of the container
     app.run(host='0.0.0.0', port=5000, debug=True)
