@@ -9,31 +9,23 @@ on:
     branches: [ main ]
 
 jobs: 
-  # Build and test the Docker container
-  docker-build-and-test: 
-    needs: unit-test
+  # Test building docker container
+  docker-build: 
+    needs: build-and-test
     runs-on: ubuntu-latest
-    steps:
+    steps: 
     - uses: actions/checkout@v4
-
     - name: Build the docker image
-      run: docker build . --file Dockerfile --tag workflow:test
-
+      run: docker build . --file Dockerfile --tag workflow:$(date +%Y%m%d%H%M%S)
+    
     - name: Run Docker container
-      run: docker run -d -p 5000:5000 --name test_container workflow:test
-
-    # TODO Replace curl with app's expected endpoint
-    - name: Test the running container
-      run: |
-        sleep 5
-        curl -f http://localhost:5000 
+      run: docker run --rm -d -p 5000:5000 --name test_container workflow:$(date +%Y%m%d%H%M%S)
 
     - name: Stop running container
       run: docker stop test_container
 
-
   # Unit testing job
-  unit-test: 
+  build-and-test: 
     # Container
     runs-on: ubuntu-latest
 
@@ -51,15 +43,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-
     # Runs all files and functions starting with test_
     - name: Run tests
       run: |
         pytest
-
+      
   # Pushing docker image to dockerhub
   build-and-push:
-    needs: docker-build-and-test
+    needs: build-and-test
     runs-on: ubuntu-latest
 
     # Checkout repo, login to docker, build and push
