@@ -11,7 +11,7 @@ on:
 jobs: 
   # Build and test the Docker container
   docker-build-and-test: 
-    needs: build-and-test-python
+    needs: unit-test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
       run: docker build . --file Dockerfile --tag workflow:test
 
     - name: Run Docker container
-      run: docker run --rm -d -p 5000:5000 --name test_container workflow:test
+      run: docker run -d -p 5000:5000 --name test_container workflow:test
 
     # TODO Replace curl with app's expected endpoint
     - name: Test the running container
@@ -33,7 +33,7 @@ jobs:
 
 
   # Unit testing job
-  build-and-test-python: 
+  unit-test: 
     # Container
     runs-on: ubuntu-latest
 
