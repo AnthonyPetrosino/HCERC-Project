@@ -15,8 +15,29 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the docker image
       run: docker build . --file Dockerfile --tag workflow:$(date +%Y%m%d%H%M%S)
+      
+  # Verify that the container responds to HTTP requests
+  test-docker-container:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Pull the built Docker image
+      run: docker pull workflow:$(date +%Y%m%d%H%M%S)
+
+    - name: Run Docker container
+      run: docker run --rm -d -p 5000:5000 workflow:$(date +%Y%m%d%H%M%S)
+
+    # TODO alter curl to different endpoint in production
+    - name: Test the running container
+      run: |
+        sleep 5 # Wait for the container to start
+        curl -f http://localhost:5000 
+
+    - name: Stop running containers
+      run: docker ps -q | xargs docker stop
+
   # Unit testing job
-  build-and-test: 
+  build-and-test-python: 
     # Container
     runs-on: ubuntu-latest
 
@@ -42,7 +63,7 @@ jobs:
 
   # Pushing docker image to dockerhub
   build-and-push:
-    needs: build-and-test
+    needs: build-and-test-python
     runs-on: ubuntu-latest
 
     # Checkout repo, login to docker, build and push
