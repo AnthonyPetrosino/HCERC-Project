@@ -2,9 +2,13 @@ import sqlite3
 import yfinance as yf
 from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
 from werkzeug.exceptions import abort
+from flask_bcrypt import Bcrypt
+from forms import RegistrationForm, LoginForm
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your secret key' # TODO Change
+app.config['SECRET_KEY'] = 'your secret key76543267' # TODO Change
+
+bcrypt = Bcrypt(app)
 
 # Connects to db
 def get_db_connection():
@@ -70,16 +74,16 @@ def create():
             cur_price = "Error fetching price"
 
         if not title or not ticker or not content:
-            flash('Please fill out all parts of the form.', 'error')
+            flash('Please fill out all parts of the form.', 'danger')
         elif cur_price == "N/A":
-            flash('Please check that your ticker symbol.', 'error')
+            flash('Please check that your ticker symbol.', 'danger')
         else:
             conn = get_db_connection()
             conn.execute('INSERT INTO posts (title, content, ticker, price_at_creation) VALUES (?, ?, ?, ?)',
                          (title, content, ticker, cur_price))   
             conn.commit()
             conn.close()
-            flash('Post created.')
+            flash('Post created.', 'success')
             return redirect(url_for('index'))
     return render_template('create.html')
 
@@ -110,8 +114,30 @@ def delete(id):
     conn.execute('DELETE FROM posts WHERE id = ?', (id,))
     conn.commit()
     conn.close()
-    flash('"{}" was successfully deleted!'.format(post['title']))
+    flash('"{}" was successfully deleted!'.format(post['title']), 'danger')
     return redirect(url_for('index'))
+
+# User authentication
+@app.route("/register", methods=('GET', 'POST'))
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        flash('Account created for "{}".'.format(form.username.data), 'success')
+        return redirect(url_for('index'))
+    return render_template('register.html', form=form)
+
+@app.route("/login", methods=("GET", "POST"))
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        if True:
+            # TODO
+            flash('Logged in as "{}".'.format(form.email.data), 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('Loggin unsuccessful, please check email and password.', 'danger')
+    return render_template('login.html', form=form)
+
 
 # Dockerize and run app
 if __name__ == "__main__":

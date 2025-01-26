@@ -1,5 +1,5 @@
-# TODO What kind of python I want to use
-FROM python:3-alpine3.15
+# Use a base image with Python
+FROM python:3.11-slim
 
 # Set the working directory in the container to /app
 WORKDIR /app
@@ -7,14 +7,23 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install the required packages
-RUN pip install -r requirements.txt
+# Install required system packages for yfinance dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Set the environment variable for Flask
 ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=5000
 
-# Which port to expose: Flask likes to use 5000, defined in app.py
+# Expose port 5000 for the Flask app
 EXPOSE 5000
 
 # Run the command to start the Flask application
-CMD ["python", "app.py"]
+CMD ["flask", "run"]

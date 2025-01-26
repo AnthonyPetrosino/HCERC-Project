@@ -1,5 +1,10 @@
 Flask==3.0.0
 pytest
 yfinance==0.2.30
-
-# Flask-SQLAlchemy==3.0.5
+Werkzeug==3.0.0
+flask_sqlalchemy
+flask_login
+flask_bcrypt
+flask_wtf
+wtforms
+email_validator
