@@ -1,44 +1,9 @@
-import sqlite3
-from datetime import datetime
+from flaskapp import app, db
+from flaskapp.models import User, Post
+from flaskapp.forms import RegistrationForm, LoginForm
 import yfinance as yf
-from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
+from flask import render_template, request, url_for, flash, redirect, jsonify
 from werkzeug.exceptions import abort
-from flask_bcrypt import Bcrypt
-from forms import RegistrationForm, LoginForm
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your secret key76543267' # TODO Change
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db' # Establish relative path from app.py to db
-db = SQLAlchemy(app)    # SQAlchemy instance
-bcrypt = Bcrypt(app)
-
-# User models 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    image_file = db.Column(db.String(30), nullable=False, default='default.jpg')
-    password = db.Column(db.String(60), nullable=False)
-    posts = db.relationship('Post', backref='author', lazy=True)    # Allows us to get all of the posts this user created
-
-    averageSuccess = db.Column(db.Integer)
-
-    def __repr__(self):  # How to 'print' objects
-        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120), nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)   # Specifies which user this post belongs to
-
-    price_at_creation = db.Column(db.Double, nullable=False)
-    ticker = db.Column(db.String(10), nullable=False)
-
-    def __repr__(self):  # How to 'print' objects
-        return f"Post('{self.title}', '{self.date_posted}', '{self.ticker}')"
 
 # Homepage route
 @app.route("/")
@@ -51,12 +16,12 @@ def index():
 def post(post_id):
     post = Post.query.get_or_404(post_id)  
 
-    price_at_creation = float(post.price_at_creation)  # Ensure numeric type
+    price_at_creation = float(post.price_at_creation)
     ticker = post.ticker.strip().upper()
 
     try:
         stock = yf.Ticker(ticker)
-        stock_data = stock.history(period="7d")
+        stock_data = stock.history(period="5d")
         if stock_data.empty:
             raise ValueError("Stock data unavailable")
 
@@ -93,7 +58,7 @@ def create():
         # Query current stock data to store as original price
         try:
             stock = yf.Ticker(ticker)           # Pass it to yfinance
-            stock_data = stock.history(period="7d")     # Fetch most recent day's data
+            stock_data = stock.history(period="5d")     # Fetch most recent day's data
             cur_price = stock_data['Close'].iloc[-1] if not stock_data.empty else None  # Fetch previous day's data if after hours
             cur_price = f"{cur_price:.2f}" if cur_price else "N/A"
         except Exception as e:
@@ -139,7 +104,6 @@ def edit(id):
 
 # # Handle requests allowing user to delete a post
 @app.route('/<int:id>/delete', methods=('POST',))
-@app.route('/<int:id>/delete', methods=('POST',))
 def delete(id):
     post = Post.query.get_or_404(id)
     db.session.delete(post)
@@ -167,9 +131,3 @@ def login():
         else:
             flash('Loggin unsuccessful, please check email and password.', 'danger')
     return render_template('login.html', form=form)
-
-
-# Dockerize and run app
-if __name__ == "__main__":
-    # Run app on port 5000 outside of the container
-    app.run(host='0.0.0.0', port=5000, debug=True)
