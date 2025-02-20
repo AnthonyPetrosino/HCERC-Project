@@ -1,6 +1,6 @@
 Flask==3.0.0
 pytest
-yfinance==0.2.30
+yfinance==0.2.54
 Werkzeug==3.0.0
 flask_sqlalchemy
 flask_login

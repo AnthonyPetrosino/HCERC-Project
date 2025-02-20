@@ -5,7 +5,15 @@
     <h4><strong>Ticker: </strong>{{ post['ticker'] }}</h4>
     <h4><strong>Price at creation: </strong>{{ post['price_at_creation'] }}</h4>
     <h4><strong>Current Price: </strong>{{ cur_price if cur_price else "Price not available" }}</h4>
-    <h4><strong>Percent Change: </strong>{{ percent_change if percent_change else "Percent Change not available" }}%</h4>
+    <h4><strong>Percent Change: </strong>
+        <span style="
+            color: {% if percent_change != 'N/A' and percent_change|float > 0 %}green
+                   {% elif percent_change != 'N/A' and percent_change|float < 0 %}red
+                   {% else %}black{% endif %};
+        ">
+            {{ percent_change if percent_change != "N/A" else "Percent Change not available" }}%
+        </span>
+    </h4>
     <p> {{ post['content'] }} </p>
             <a href="{{ url_for('edit', id=post['id']) }}">
             <span class="badge badge-warning">Edit</span>

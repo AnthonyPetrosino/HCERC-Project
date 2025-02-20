@@ -21,8 +21,9 @@ def post(post_id):
 
     try:
         stock = yf.Ticker(ticker)
-        stock_data = stock.history(period="5d")
+        stock_data = stock.history(period='5d') 
         if stock_data.empty:
+            print("Stock data unavailable")
             raise ValueError("Stock data unavailable")
 
         cur_price = stock_data['Close'].iloc[-1]
@@ -58,7 +59,7 @@ def create():
         # Query current stock data to store as original price
         try:
             stock = yf.Ticker(ticker)           # Pass it to yfinance
-            stock_data = stock.history(period="5d")     # Fetch most recent day's data
+            stock_data = stock.history(period='5d')     # Fetch most recent day's data
             cur_price = stock_data['Close'].iloc[-1] if not stock_data.empty else None  # Fetch previous day's data if after hours
             cur_price = f"{cur_price:.2f}" if cur_price else "N/A"
         except Exception as e:
