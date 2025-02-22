@@ -13,5 +13,4 @@ LoginManager = LoginManager(app)    # User login functionality
 LoginManager.login_view = 'login'
 LoginManager.login_message_category = 'info'
 
-
 from flaskapp import routes

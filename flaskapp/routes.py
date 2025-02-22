@@ -10,6 +10,23 @@ from flask_login import login_user, current_user, logout_user, login_required
 @app.route("/")
 def index():
     posts = Post.query.all()
+
+    for post in posts:
+        price_at_creation = float(post.price_at_creation)
+        ticker = post.ticker.strip().upper()
+
+        try:
+            stock = yf.Ticker(ticker)
+            stock_data = stock.history(period='5d')
+            if stock_data.empty:
+                raise ValueError("Stock data unavailable")
+
+            cur_price = stock_data['Close'].iloc[-1]
+            percent_change = ((float(cur_price) - price_at_creation) / price_at_creation) * 100
+            post.percent_change = f"{percent_change:.2f}"
+        except Exception:
+            post.percent_change = "N/A"
+
     return render_template("index.html", posts=posts)
 
 # Viewing an individual post
@@ -118,19 +135,19 @@ def delete(id):
 
 
 # User authentication
-@app.route("/register", methods=('GET', 'POST'))
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') # Hashing password
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
-        db.session.add(user)
-        db.session.commit()
-        flash('Account created for "{}"! Please log in.'.format(form.username.data), 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html', form=form)
+# @app.route("/register", methods=('GET', 'POST'))
+# def register():
+#     if current_user.is_authenticated:
+#         return redirect(url_for('index'))
+#     form = RegistrationForm()
+#     if form.validate_on_submit():
+#         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') # Hashing password
+#         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+#         db.session.add(user)
+#         db.session.commit()
+#         flash('Account created for "{}"! Please log in.'.format(form.username.data), 'success')
+#         return redirect(url_for('login'))
+#     return render_template('register.html', form=form)
 
 @app.route("/login", methods=("GET", "POST"))
 def login():
