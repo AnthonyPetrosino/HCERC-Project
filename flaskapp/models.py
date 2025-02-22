@@ -1,9 +1,14 @@
-from flaskapp import db
+from flaskapp import db, LoginManager
 from datetime import datetime
+from flask_login import UserMixin
 
+# Login returning user functionality
+@LoginManager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # User models 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -25,6 +30,7 @@ class Post(db.Model):
 
     price_at_creation = db.Column(db.Double, nullable=False)
     ticker = db.Column(db.String(10), nullable=False)
+    # sector = db.Column(db.Integer, nullable=False)    # TODO Technology Healthcare Consumer Energy
     
     pdf_file = db.Column(db.String(255), nullable=True)
 

@@ -1,9 +1,10 @@
-from flaskapp import app, db
+from flaskapp import app, db, bcrypt
 from flaskapp.models import User, Post
 from flaskapp.forms import RegistrationForm, LoginForm
 import yfinance as yf
-from flask import render_template, request, url_for, flash, redirect, jsonify
+from flask import render_template, request, url_for, flash, redirect, jsonify, request
 from werkzeug.exceptions import abort
+from flask_login import login_user, current_user, logout_user, login_required
 
 # Homepage route
 @app.route("/")
@@ -45,6 +46,7 @@ def post(post_id):
 
 # Handle requests allowing user to create a post
 @app.route('/create', methods=('GET', 'POST'))
+@login_required     # TODO Only allow admin to create posts
 def create():
     if request.method == 'POST':    # Executes following POST request
         title = request.form['title']
@@ -86,6 +88,7 @@ def create():
 
 # # Handle requests allowing user to edit a post
 @app.route('/<int:id>/edit', methods=('GET', 'POST'))
+@login_required     # TODO Only allow admin to edit posts
 def edit(id):
     post = Post.query.get_or_404(id)
     if request.method == 'POST':
@@ -103,8 +106,9 @@ def edit(id):
         
     return render_template('edit.html', post=post)       
 
-# # Handle requests allowing user to delete a post
+# Handle requests allowing user to delete a post
 @app.route('/<int:id>/delete', methods=('POST',))
+@login_required     # TODO Only allow admin to delete posts
 def delete(id):
     post = Post.query.get_or_404(id)
     db.session.delete(post)
@@ -112,23 +116,43 @@ def delete(id):
     flash(f'"{post.title}" was successfully deleted!', 'danger')
     return redirect(url_for('index'))
 
-# # User authentication
+
+# User authentication
 @app.route("/register", methods=('GET', 'POST'))
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        flash('Account created for "{}".'.format(form.username.data), 'success')
-        return redirect(url_for('index'))
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8') # Hashing password
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Account created for "{}"! Please log in.'.format(form.username.data), 'success')
+        return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
 @app.route("/login", methods=("GET", "POST"))
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
-        if True:
-            # TODO
-            flash('Logged in as "{}".'.format(form.email.data), 'success')
-            return redirect(url_for('index'))
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
         else:
             flash('Loggin unsuccessful, please check email and password.', 'danger')
     return render_template('login.html', form=form)
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route("/account")
+@login_required
+def account():
+    return render_template('account.html')
