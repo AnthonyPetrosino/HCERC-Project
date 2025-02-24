@@ -2,6 +2,10 @@ from flaskapp import db, LoginManager
 from datetime import datetime
 from flask_login import UserMixin
 
+# To update db:
+# flask db migrate -m "Initial Migration"     (changes can be seen in the migrations -> versions directory)
+# flask db upgrade
+
 # Login returning user functionality
 @LoginManager.user_loader
 def load_user(user_id):
@@ -30,8 +34,8 @@ class Post(db.Model):
 
     price_at_creation = db.Column(db.Double, nullable=False)
     ticker = db.Column(db.String(10), nullable=False)
-    # sector = db.Column(db.Integer, nullable=False)    # TODO Technology Healthcare Consumer Energy Other
-    # action = db.Column(db.String(10), nullable=False)   # TODO BUY HOLD SELL
+    sector = db.Column(db.Integer, nullable=False) 
+    action = db.Column(db.String(10), nullable=False) 
     
     pdf_file = db.Column(db.String(255), nullable=True)
 

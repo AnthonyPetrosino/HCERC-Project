@@ -23,7 +23,7 @@ def index():
 
             cur_price = stock_data['Close'].iloc[-1]
             percent_change = ((float(cur_price) - price_at_creation) / price_at_creation) * 100
-            post.percent_change = f"{percent_change:.2f}"
+            post.percent_change = f"{percent_change:.2f}"  # Attach percent_change to post object
         except Exception:
             post.percent_change = "N/A"
 
@@ -56,7 +56,6 @@ def post(post_id):
         'post.html',
         post=post,
         cur_price=cur_price,
-        price_at_creation=price_at_creation,
         percent_change=percent_change,
     )
 
@@ -69,6 +68,8 @@ def create():
         title = request.form['title']
         content = request.form['content']
         ticker = request.form['ticker'].upper()
+        action = request.form['action']
+        sector = request.form['sector']
         # user = request.form['user'] TODO
 
         if not title or not ticker or not content:
@@ -94,7 +95,9 @@ def create():
             content=content,
             ticker=ticker,
             price_at_creation=cur_price,
-            user_id=1  # TODO: Change this to the actual logged-in user's ID
+            user_id=1,  # TODO: Change this to the actual logged-in user's ID
+            sector=sector,
+            action=action
         )
         
         db.session.add(new_post)

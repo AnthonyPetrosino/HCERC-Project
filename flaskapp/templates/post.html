@@ -3,6 +3,8 @@
 <h1>{% block title %} {{ post['title'] }} {% endblock %}</h1>
     <span class="badge badge-primary">{{ post.date_posted.strftime('%m-%d-%Y %H:%M') }}</span>
     <h4><strong>Ticker: </strong>{{ post['ticker'] }}</h4>
+    <h4><strong>Sector: </strong>{{ post['sector'] }}</h4>
+    <h4><strong>Action: </strong>{{ post['action'] }}</h4>
     <h4><strong>Price at creation: </strong>{{ post['price_at_creation'] }}</h4>
     <h4><strong>Current Price: </strong>{{ cur_price if cur_price else "Price not available" }}</h4>
     <h4><strong>Percent Change: </strong>

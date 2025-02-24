@@ -1,15 +1,25 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h1>{% block title %} HCERC Stock Pitches {% endblock %}</h1>
-    {% for post in posts %}
-        <a href=" {{ url_for('post', post_id=post['id']) }}">
-            <h2>{{ post['title'] }}</h2>
-        </a>
-        <span class="badge badge-primary">{{ post.date_posted.strftime('%m-%d-%Y %H:%M') }}</span>
-        
-        <!-- <a href="{{ url_for('edit', id=post['id']) }}">
-            <span class="badge badge-warning">Edit</span>
-        </a> -->
-        <hr>
-    {% endfor %}
+    <div class="container mt-4">
+        <h1 class="text-center">{% block title %} HCERC Stock Pitches {% endblock %}</h1>
+        <div class="list-group">
+            {% for post in posts %}
+                <div class="list-group-item">
+                    <a href="{{ url_for('post', post_id=post.id) }}" class="text-decoration-none">
+                        <h2 class="mb-2">{{ post.title }}</h2>
+                    </a>
+                    <span class="badge bg-primary">{{ post.date_posted.strftime('%m-%d-%Y %H:%M') }}</span>
+                    <h4 class="mt-2">
+                        <strong>Percent Change: </strong>
+                        <span class="{% if post.percent_change != 'N/A' and post.percent_change|float > 0 %}text-success
+                                     {% elif post.percent_change != 'N/A' and post.percent_change|float < 0 %}text-danger
+                                     {% else %}text-dark{% endif %}">
+                            {{ post.percent_change if post.percent_change != "N/A" else "Percent Change not available" }}%
+                        </span>
+                    </h4>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}

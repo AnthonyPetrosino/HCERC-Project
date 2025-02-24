@@ -13,12 +13,34 @@
             value="{{ request.form['title'] }}"></input>
     </div>
 
+    <!-- Assign Sector -->
+    <div class="form-group">
+        <label for="action">Sector</label>
+        <select name="sector" class="form-control">
+            <option value="Technology">Technology</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Consumer">Consumer</option>
+            <option value="Energy">Energy</option>
+            <option value="Other">Other</option>
+        </select>
+    </div>
+
     <!-- Assign ticker symbol -->
     <div class="form-group">
         <label for="ticker">Ticker Symbol</label>
         <input type="text" name="ticker"
             placeholder="Ticker Symbol" class="form-control"
             value="{{ request.form['ticker'] }}"></input>
+    </div>
+
+    <!-- Assign action -->
+    <div class="form-group">
+        <label for="action">Action</label>
+        <select name="action" class="form-control">
+            <option value="BUY">BUY</option>
+            <option value="HOLD">HOLD</option>
+            <option value="SELL">SELL</option>
+        </select>
     </div>
 
     <!-- Assign post contents -->
